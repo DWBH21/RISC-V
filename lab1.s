@@ -1,11 +1,10 @@
 # loading first operand from 0x10000000 in x7
-lui x20, 0x10000
+addi x20, x0, 1
+slli x20, x20, 24
 ld x7, 0(x20)
 
 #loading second operand from 0x10000008 in x8
-lui x20, 0x10000
-addi x20, x20, 0x008
-ld x8, 0(x20)
+ld x8, 8(x20)
 
 # Copy first operator to x5 and second operand to x6
 addi x5, x7, 0
@@ -32,13 +31,10 @@ sub x9, x9, x9
 # mask (x12 = 1) 
 addi x12, x0, 1
 
-# loop variable i (x13 = 63)
-addi x13, x0, 64
-
 LOOP:
     
-# loop condition 
-blt x13, x0, DONE
+# loop condition (while mask > 0)
+blt x12, x0, DONE
 
 # x14 = (first_operand) AND mask
 and x14, x5, x12
@@ -55,8 +51,6 @@ BITNOTSET:
 slli x12, x12, 1
 slli x6, x6, 1
 
-# decrement loop variable
-addi x13, x13, -1
 bge x0, x0, LOOP
 
 DONE:
@@ -69,7 +63,4 @@ sub x9, x0, x9
 END:
 
 # storing final value in memory location 0x10000050
-lui x20, 0x10000
-addi x20, x20, 0x050
-sd x15, 0(x20)
-
+sd x9, 50(x20)
