@@ -1,7 +1,7 @@
-.section 
+# .section 
 
-.data 
-.dword 4, 12, 3, 125, 50, 32, 16, 4, 0
+# .data 
+# .dword 4, 12, 3, 125, 50, 32, 16, 4, 0
 
 .text
     # The following line initializes register x3 with 0x10000000 
@@ -65,3 +65,4 @@ DONE:
     beq x0, x0, LOOP
     
 EXIT:
+    beq x0, x0, EXIT
