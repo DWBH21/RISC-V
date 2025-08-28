@@ -1,66 +1,68 @@
-# loading first operand from 0x10000000 in x7
-addi x20, x0, 1
-slli x20, x20, 24
-ld x7, 0(x20)
+# .section 
 
-#loading second operand from 0x10000008 in x8
-ld x8, 8(x20)
+# .data 
+# .dword 4, 12, 3, 125, 50, 32, 16, 4, 0
 
-# Copy first operator to x5 and second operand to x6
-addi x5, x7, 0
-addi x6, x8, 0
-
-# extract the signs of the two operands and take their modulus
-# final sign of product will be stored in x10, 1 if negative and 0 if positive
-sub x10, x10, x10 
-
-bge x7, x0, POS1
-sub x5, x0, x7
-addi x10, x0, 1
-
-POS1:
-bge x8, x0, POS2
-sub x6, x0, x8
-xori x10, x10, 1
-
-POS2:
-
-# initialize sum to 0, to be stored in register x9
-sub x9, x9, x9
-
-# mask (x12 = 1) 
-addi x12, x0, 1
-
-LOOP:
+.text
+    # The following line initializes register x3 with 0x10000000 
+    # so that you can use x3 for referencing various memory locations. 
+    lui x3, 0x10000
+    #your code starts here       
     
-# loop condition (while mask > 0)
-blt x12, x0, DONE
+    # load the count in x5
+    ld x5, 0(x3) 
+    
+    # increment x3 to get operands
+    addi x3, x3, 8
+    
+    # using x11 as memory location for result
+    lui x11, 0x10000
+    addi x11, x11, 0x200
+    
+    # initialize loop counter
+    addi x6, x0, 1
+    
+LOOP:
+    blt x5, x6, EXIT
 
-# x14 = (first_operand) AND mask
-and x14, x5, x12
-
-# to check condition: if x14 > 0 
-bge x0, x14, BITNOTSET
-
-# update the sum 
-add x9, x9, x6
-
-BITNOTSET: 
-
-# left shift mask and second operand 
-slli x12, x12, 1
-slli x6, x6, 1
-
-bge x0, x0, LOOP
-
-DONE:
-# check if result is negative
-beq x10, x0, END
-
-# make result negative 
-sub x9, x0, x9
-
-END:
-
-# storing final value in memory location 0x10000050
-sd x9, 50(x20)
+    # load operands in x8 and x9
+    ld x8, 0(x3)
+    ld x9, 8(x3) 
+    
+    # calculating gcd, result will be stored in x10
+GCD:
+    bne x8, x0, NEXT1            
+    add x10, x0, x0            # executed if x8 == 0
+    beq x0, x0, DONE
+    
+NEXT1:
+    bne x9, x0, NEXT2
+    add x10, x0, x0            # executed if x9 == 0
+    beq x0, x0, DONE
+    
+NEXT2: 
+    bne x8, x9, NEXT3
+    add x10, x8, x0          # executed if x8 == x9
+    beq x0, x0, DONE   
+     
+NEXT3:    
+    bltu x8, x9, NEXT4
+    sub x8, x8, x9             # executed if x8 >= x9 (unsigned)
+    beq x0, x0, GCD
+    
+NEXT4:
+    sub x9, x9, x8            # executed if x8 < x9 (unsigned) 
+    beq x0, x0, GCD
+    
+DONE:        
+    # storing result in memory location 
+    sd x10, 0(x11)
+    
+    # increment counters and offsets
+    addi x6, x6, 1
+    addi x3, x3, 16
+    addi x11, x11, 8
+    beq x0, x0, LOOP
+    
+EXIT:
+    beq x0, x0, EXIT
